@@ -1,12 +1,3 @@
-
-Como assistir a aula ao vivo do curso previsto para começar dia 09/01/23:
-
-Passo 1 - Acesse o PORTAL DO ALUNO através do link: https://forceclass-00.linuxforce.com.br/
-
-Passo 2 - Clique em: LINK PARA ACESSO À SALA DE AULA INÍCIO ÀS 19:30H, e informe seu nome e sobrenome.
-
-Obs: Sempre faça o download das aulas, pois seu acesso em nossa plataforma será de 1 ano à partir de hoje, pois dessa forma você terá as aulas salvas em seu PC.
-
 ## Desligar
 halt
 powerof
