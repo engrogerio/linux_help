@@ -1,25 +1,62 @@
+Acesse o PORTAL DO ALUNO através do link: https://forceclass-00.linuxforce.com.br/
+
+# 1-TURN ON / OFF
+
 ## Desligar
+ 
 halt
+ 
 powerof
+ 
 shutdown -h now
+ 
 init 0
+ 
 telinit 0
-
+ 
 ## Reiniciar
+ 
 reboot
+ 
 shutdown -r
+ 
 now init 6
+ 
 telinit 6
+ 
+-------------------------
+ 
+ 
+# 2-BASIC ADMIN COMMANDS
 
+estrutura arquivo /etc/passwd
+ 
+1 - login
+ 
+2 - senha
+ 
+3 - uid
+ 
+4 - gid
+ 
+5 - comentários
+ 
+6 - diretório home
+ 
+7 - shell
+ 
 ## enviar msg ao usuario'
+ 
 wall 
-
+ 
 ## HOSTNAMECTL
 hostnamectl set-hostname invent.com.br
 
 ## VISUDO - configura o sudo
 
-## WHO or w -> check what users are currently connected
+## WHO or w 
+
+check what users are currently connected
 
 ## HISTORY 
 histsize -> env var that set max items on history
@@ -32,31 +69,42 @@ fc abre editor com ultima linha do historico
 
 ## HELP
 help - show builtin commands
-
+ 
 info - show applications (commands) separated by functionality
+ 
 info ls - show info about command ls
-
+ 
 man -k network - show all manuals with the word network
 (nome , (seção), descrição do manual)
+ 
 apropos - same as man -k
-
+ 
 man 5 systemd.network
-
+ 
 whatis <command> show what command does brefly
+ 
 man -f - same as whatis
+ 
 whereis <command> - obvious
+ 
 which <command> 
-
+ 
 mandb - mantem base de dados dos manuais atualizadas
 /usr/share/man - repositorio dos manuais
-
+ 
 ## USEFULL PATHS
 /usr/share -all installed apps
+ 
 /usr/share/doc - app docs
-
+ 
 /etc/profile -> configuração global (qualquer usuario) + para env variables
-
-~/.bashrc -> usuario (mais para funções e alias)
+ 
+~/.bashrc -> configuração do usuario (mais para funções e alias)
+ 
+-------------------------
+ 
+  
+# SEARCH TEXT & MANIPULATION
 
 ## REDIRECT STDerr, in, out
 ls /dev/std*
@@ -91,73 +139,44 @@ help set
 wc -l /etc/host - return line count
 wc -w ->word count / wc -c -> characteres count
 
-# TR
+## TR
 tr : a-z A-Z translate all letters to uppercase
 tr : at AT translate all a to A and t to T
 tr -d abc - delete chars abc
 
-# GREP
+## GREP
 grep -i --color -n -r(recursive) word /etc/ search for word on all files on /etc/
 
 grep -v(inverte a busca) --color -n <palavra> /etc/config
 
-REGEX
+## REGEX
 egrep --color -r [dD]ebian /etc/
 egrep --color -r [!dD] /etc/ -> todos exceto iniciando com d ou D
 
-# Comandos avançados
-dd -conversões e cópias de arquivos
-criar usb bootavel
-ex:
-dd if=/var/log/messages of=/tmp/logs
-clone partition
-dd if=/dev/sda  of=/dev/sdb 
 
-adding file as swap file
-dd if=/dev/zero of=/var/swapfile bs=1M count=500
-lsblk = lista blocos do disco
+## SORT
+tee  -read from stdin and write to stdout
+date |tee file1 file2
+|sort |nl -sort and enumerate
 
-mkswap /var/swapfile
-swapon /var/swapfile
-swapon -v -> lista a composição do swap
-swapoff /var/swapfi
-/proc/swaps = swap info file
-
-free -h show mem status
-
-split -b 4M -d /tmp/arquivo /tmp/arq
-split -l (line)
-juntar: cat arq* >arquivonovo
-
-cat > arquivo.txt -> espera entrada de texto e grava no arquivo
-
-sort
+## UNIQ
 uniq -cd = count repeated lines in sequence
 uniq retorna não repetidas
 
-
-PASTE
+## PASTE
+Join 2 files line by line
 JOIN
-junta 2 arquivos linha por linha
+Join 2 files line by line
 
-estrutura arquivo /etc/passwd
-1 - login
-2 - senha
-3 - uid
-4 - gid
-5 - comentários
-6 - diretório home
-7 - shell
-
-CUT
+## CUT
 head /etc/passwd | cut -d : -f 1,7 (retorna o login e shell)
 ... | cut -d : -f 1-4 (retorna items 1 a 4)
 ls -l /etc/*.conf | cut -c 1-10,43-70 (por caractereres)
 
-AWK
+## AWK
 head /etc/passwd |awk -F : '{ print "Login:" $1,"\tDiretório:", $7 }'
 
-FIND
+## FIND
 find /var /etc \
 -name: (nome exato) \
 -iname: (ignore case)
@@ -177,20 +196,19 @@ em dias
 -mtime = 
 -ctime =
 
-STAT - show folder/ files statistics
+## STAT - show folder/ files statistics
 
-WATCH 'find...' -> Executa o comando a cada 2segs e mostra na tela
+## WATCH 'find...' -> Executa o comando a cada 2segs e mostra na tela
 
-LOCATE
+## LOCATE
 locate filename
 não faz buscas em dirs temporários
 have to run: updatedb before use locate
 
-DEFINIR EDITOR PADRÃO
+## TO DEFINE STD EDITOR
 update-alternatives --config editor
 
-
-SED
+## SED
 -e = exhibit only
 -i = change file Inplaceb
 /g = global (all occurrences)
@@ -204,14 +222,46 @@ sed -e '1,10s/nologin/login/g'
 pipe may be used for special chars:
 replace duble quotes to nothing:
 blkid |sed -e 's|"||g'
+ 
+-------------------------
 
-======================================================================
+# ADVANCED COMMANDS
 
-SCRIPT <filename> 
+## DD
+dd -conversões e cópias de arquivos
+criar usb bootavel
+ex:
+dd if=/var/log/messages of=/tmp/logs
+clone partition
+dd if=/dev/sda  of=/dev/sdb 
+
+## CREATING SWAP FILE
+adding file as swap file
+dd if=/dev/zero of=/var/swapfile bs=1M count=500
+lsblk = lista blocos do disco
+
+mkswap /var/swapfile
+swapon /var/swapfile
+swapon -v -> lista a composição do swap
+swapoff /var/swapfi
+/proc/swaps = swap info file
+
+## SPLIT
+split -b 4M -d /tmp/arquivo /tmp/arq
+split -l (line)
+juntar: cat arq* >arquivonovo
+
+cat > arquivo.txt -> espera entrada de texto e grava no arquivo
+
+## SCRIPT <filename> 
 Grava stdin e stdout em arquivo
 -a = append on existing file
 exit para sair
-
+ 
+-------------------------
+ 
+  
+# RESOURCES ADMIN
 
 ## DISK ADMIN
 
@@ -245,8 +295,9 @@ P = order by CPU%
 
 
 ## MEM ADMIN
-free
-cat /proc/meminfo
+free -h show mem status
+
+cat /proc/meminfo (file where mem info is saved)
 
 /proc/sys/vm/drop_caches = cache 
 echo 3 > /proc/sys/vm/drop_caches = clean cache
@@ -254,58 +305,54 @@ echo 3 > /proc/sys/vm/drop_caches = clean cache
 top 
 M - order by memory
 
-## USB
+## USB ADMIN
 lsusb = show ports and devices connected
 -v show port details 
 
-## PCI
+## PCI ADMIN
 lspci = show pci hardware
 lspci -k = show drivers / kernel modules
 lspci -v = show memory addresses and IO.
 
-## INVENTORY
+## RESOURCES / HARDWARE INVENTORY
 lshw -html (or xml or json) > result.html
 
 other options:
 -short
 ocs inventory
 kacy
+ 
+-------------------------
+ 
+# MANAGING DISKS
 
-
-
-# Disk management
-===================================================================
-
-# 1- Particionar
+## 1- Partitionning
 fdisk /dev/sdb1
 
 
-# 2- Formatar
-
+## 2- Formatting
 lsblk -f
 
-## Formats
-            ext4*            xfs
+### Formats
+            ext4*            xfs        btrfs
 max files: 4bilhoes         2^64
 max file    16Tb            8Eb
 max volume  1Eb             8Eb
-xfs
-btrfs
 * mais utilizado
 
 ### Format to xfs:
 mkfs -t xfs  /dev/sdb1
 
-### add label para partiçõs xfs
+### add label to xfs partitions
 xfs_admin -L express /dev/sdb1
 xfs_admin -L log /dev/sdb2
 xfs_admin -L backup /dev/sdc
 
-### add label para partições ext4
+### add label to ext4 partitions
 tune2fs -L git /dev/sdb1
 tune2fs -L backup /dev/sdb2
 
-# 3- Montar
+## 3-Mount
 
 ### temporary mount
 mount /dev/sdb1 /srv/www/
@@ -319,26 +366,26 @@ adding
 or
 LABEL=git      /home/analista/git ext4 defaults 0 0
 
-defaults = WR
+defaults = wr
 noexec = block execution
 * dump = opção para backup com dump. 0 = No Dump
 ** pass = To check disk on initialization. 1 = Do check
 
-Mount all defined on /etc/fstab
-
 mount -a should mount or show the errors if there is on fstab
-cd /
 
-# Convert ext3 to ext4 format
+### Convert ext3 to ext4 format
+
 sha1sum - return hash for file
+
 1- umount /backups
 
 2- convert partition to ext4
 tune2fs -O extents,uninit_bg,dir_index /dev/sdb2
+ 
+-------------------------
+ 
 
-
-# MANAGING FILES PACKAGES
-==========================
+# MANAGING FILE PACKAGES
 
 ## CPIO
 <files list> | cpio -ov > file
@@ -361,3 +408,14 @@ unxz conf.tar.xz
 ### tar
 -z = gzip
 -J = xz
+
+### lsof - show opened files
+ 
+-------------------------
+ 
+ 
+# NETWORK
+Virtualbox docs
+https://www.virtualbox.org/manual/ch06.html
+
+ip a -> show newtwk interfaces
