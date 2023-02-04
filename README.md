@@ -507,7 +507,121 @@ unxz conf.tar.xz
  
 # NETWORK
 Virtualbox docs
+## DEFINITIONS
+NAT = network address translation
+local -> internet
+
+
+## COMMANDS 
+nmcli con show = config and change interfaces ips
  
+ip a = show newtwk interfaces
+
+chattr +i /file = makes the file imutable (-i = remove, lsattr show if is immutable)
+
 https://www.virtualbox.org/manual/ch06.html
- 
-ip a -> show newtwk interfaces
+
+repo git/rogerramossilva/linuxforce
+
+## GATEWAY APPLIANCE 
+
+### NETWORK CONFIG - CentOS distro
+* copy interfaces from repo (enp0s8 e 0s9)
+cp /root/linuxforce/gateway/network-scripts/ TO 
+/etc/sysconfig/network-scripts/
+
+iface file example:
+TYPE=Ethernet
+BOOTPROTO=static or dhcp
+DEVICE= same name as the interface name
+ONBOOT=yes -> interface active on os load
+IPADDR =for 1 ip
+IPADDR1 = ip addresses
+IPADDR2 = ip addresses
+
+
+### DNS SERVER
+/etc/resolv.conf - resolução de nomes pela ordem de declaração dos servidores:
+
+search asf.com
+domain asf.com
+nameserver 8.8.8.8
+nameserver 192.168.1.10
+nameserver 192.168.1.20
+* chattr +i /etc/resolv.conf
+
+
+### ROUTER APPLIANCE CONFIG
+/etc/systl.conf
+* add the line:
+net.ipv4.ip_forward=1
+
+* sysctl -p (to load the changes)
+
+### NAT
+To create a firewall rule. (block, manipulate(masquerade), release, etc)
+
+Stop and disable firewalld service
+* systemctl stop firwalld
+* systemctl disable firewalld
+
+Install and start iptables-services (firewall)
+(iptables is deprecated. nftable?)
+* yum install -y iptables-services
+* systemctl enable iptables
+* copy config files from repo /linuxforce/gateway/sbin/firewall.sh to /sbin
+* rodar o firewall.sh
+* ip route - show routes
+
+
+### DHCP SERVER (na maquina gateway)
+* yum install dhcp-server
+copy from git repo: /root/linuxforce/dhcp/dhcpd.conf to
+/etc/dhcp/dhcpd.conf - arquivo de configuração
+
+systemctl restart dhcpd
+systemctl enable dhcpd
+
+## OTHER APPLIANCES
+
+### NETWORK CONFIG Debian
+* edit primary interface:
+
+vim /etc/network/interfaces
+
+auto enp0s3 (interface up when linux load)
+iface enp0s3 inet static (or dhcp)
+    address 192.168.1.30
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+
+* restart service 
+systemctl restart networking
+
+# PACKAGES MANAGEMENT
+## Important folders:
+/etc/apt/sources.list - config apt install
+/var/cache/apt/archives/ - apt keep installers here.
+/usr/local/src or /usr/src - place to store source codes.
+
+
+## APT options
+apt search <packname> - suggests packages and similaries
+apt show <packname> - show info about the append
+apt policy <packname> - show if its installed and the candidates
+apt list <packname> - list the exact pack for the app
+
+apt remove <packname> - remove packages leaving changed files.
+apt purge <packname> - remove packages including all changed files.
+
+apt autoremove - remove orfaos packages
+
+apt clean - remove packages deb wich were used to install 
+
+dpkg -l <packname>
+
+## Compiling
+
+apt build-deb <app> - install all dependencies needed for to compile the app
+
+ap source <app> - download the source code for app
