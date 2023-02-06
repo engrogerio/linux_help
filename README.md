@@ -598,7 +598,7 @@ iface enp0s3 inet static (or dhcp)
 * restart service 
 systemctl restart networking
 
-# PACKAGES MANAGEMENT
+# PACKAGES MANAGEMENT FOR DEBIAN
 ## Important folders:
 /etc/apt/sources.list - config apt install
 /var/cache/apt/archives/ - apt keep installers here.
@@ -610,18 +610,124 @@ apt search <packname> - suggests packages and similaries
 apt show <packname> - show info about the append
 apt policy <packname> - show if its installed and the candidates
 apt list <packname> - list the exact pack for the app
-
+apt source <packname> - download app source
 apt remove <packname> - remove packages leaving changed files.
 apt purge <packname> - remove packages including all changed files.
-
+apt download <packname> - download .deb
 apt autoremove - remove orfaos packages
 
 apt clean - remove packages deb wich were used to install 
 
-dpkg -l <packname>
+Other package mgmt tool: aptitude
+
+
 
 ## Compiling
 
 apt build-deb <app> - install all dependencies needed for to compile the app
 
 ap source <app> - download the source code for app
+
+./configure
+make 
+make install
+
+## Installing from .deb  using dpkg (low level)
+
+* verify if packname is installed:
+ 
+dpkg -l <packname>
+ 
+* baixar o pacote .deb:
+ 
+apt download <packname> - download .deb
+ 
+dpkg -I <packname> show Info when not installed
+ 
+dpkg -s <packname> show info when its installed
+ 
+dpkg -c <packname> show pack structure before installs
+ 
+dpkg -i <packname> install from .deb file
+ 
+dpkg -L <packname> show file structure when installed
+ 
+dpkg -S /usr/sbin/iftop - show to what package this file belongs to
+ 
+dpkg -r <packname> removes the package files
+ 
+# PACKAGES MANAGEMENT FOR CentOS (REDHAT)
+
+## Convert from .deb to .rpm (RedHat)
+alien -r packname.Debian
+
+## Important folders:
+/etc/yum.repos.d - repos used by the os
+/var/log/dnf.log - log on package management
+ 
+enabled = 1 - enabled
+ 
+gpgcheck=1 - check key on the web address
+
+## Installing .rpm packages
+
+RedHat uses dnf or yum as package management
+
+
+## YUM
+yum repolist - show active repos
+ 
+yum makecash - update internally the package list (like apt update)
+ 
+yum check-update - check packages that need to be updatedb
+ 
+yum update - update the packages (like apt upgrade)
+ 
+yum list <packname> - check if pacakge existing
+ 
+yum info <packname> - show info
+ 
+yum search <packname> - search for a package by name
+ 
+yum install <packname> - install
+
+yum download <package> - download the .rmp package file
+
+yum remove <packname> - uninstall package
+ 
+yum purge <packname> - remove even changed files
+
+yum grouplist <optional groupname> - list packs by environment grouplist
+
+yum groupinfo <optional groupname> - list group info
+
+yum groupinstall <groupname> - install group elements
+
+yum groupremove <groupname> - uninstall group elements
+
+yum clean all - remove package files from local folder
+
+## RPM (install a .rpm file)
+
+rpm -q <packname> - check if package is installed
+  
+rpm -qpi <packname> - query package info before installing
+ 
+rpm -qpl <packname> - query package list before installing
+ 
+rpm -ivh  <packname> --percent  - install verbose human 
+
+rpm -ivh  <packname> --test - test installation
+ 
+rpm -Uvh <.rpm pack> - Upgrade package
+
+rpm -qf <filename> - query file - show to which package the file belongs to.
+
+rpm -e <packname> - erase (remove) a package
+
+rpm -Va - compare instalation and show diferences on files comparing to the original (audit) 
+
+rpm -qa - query all packages installed
+
+
+
