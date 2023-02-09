@@ -725,9 +725,62 @@ rpm -qf <filename> - query file - show to which package the file belongs to.
 
 rpm -e <packname> - erase (remove) a package
 
-rpm -Va - compare instalation and show diferences on files comparing to the original (audit) 
+rpm -Va - compare instalation and show diferences on files comparing to the original from repo (audit) 
 
 rpm -qa - query all packages installed
 
+# Libraries management
 
+## important folders
+/lib/x86-64-linux-gnu - libraries installed
 
+/etc/ld.so.conf.d - conf files that shows libraries paths
+
+## commands
+
+ldd /bin/ls - list so libraries for the executable (/bin/ls in this case)
+
+ldconfig -p - list all installed libraries cached
+
+ldconfig  - update the cash
+
+# Module management
+
+## important folders
+/boot - kernel compiled image:
+    vmlinux - kernel
+    config - show what modules are loaded (y)
+    aditional modules (m)
+
+/boot/initrd.img.... - kernel image
+    
+/lib/modules/ - kernel modules available (not loaded) (.ko = modules) 
+
+/lib/modules/5.10.0-20-amd64/ - kernel modules list files 
+
+/etc/modules-load.d - conf files to declare other modules to initialize.
+
+/etc/udev - ??
+
+## commands
+lsmod - list all loaded modules
+
+modinfo <mod name> show all module info
+
+rmmod <mod path> remove module (unload)
+
+depmod - atualiza lista de modules 
+
+modprobe <mod name> - read modules.dep e carrega o modulo solicitado
+
+udev - 
+
+# Processes
+Activities started.
+
+## important folders
+/proc - processes (on RAM)
+ 
+ 
+## commands
+ps -aux - list all process: Sleep Running
