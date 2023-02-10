@@ -777,10 +777,132 @@ udev -
 
 # Processes
 Activities started.
+PID = process son
+PPID = process parent
+
 
 ## important folders
-/proc - processes (on RAM)
+/proc - processes (running on RAM)
  
  
+## read commands
+ps -aux - list all process: state(Sleep Running), MEM and CPU
+ps -eF
+ps -ely - show state and nice (ni) or priority
+ps -axjf - show process tree
+ps -ax -o pid,user,nice,stat,command = customized output
+
+pstree - show process tree
+
+pgrep -a appname - show process related to app
+
+pidof app - return app pid if app is running
+
+top / htop
+
+## management commands
+
+kill
+killall process name - kill all process by name
+pkill
+
+man 7 signal - man for Standard signals
+kill -l =show signals list
+
+Most used:
+15 SIGTERM - terminate signal 
+19 SIGSTOP - stop signal
+3 SIGQUIT -
+9 SIGKILL - kill process
+18 SIGCONT - continue a stoped process
+
+ctr+z - send task to background
+jobs -l = show backgrounds tasks and its number
+
+command & = run in background
+
+fg task number = bring task to foreground
+
+nohup = run a command imune to hungaps (not related to a tty)
+
+### priority
+-20 = very hight
+0 = normal
++19 = very low
+
+nice -n -20 <process> = start a process with priority -20
+renice -n -15 <pid> = change the process pid priority to -15
+
+# LOCAL USERS AND GROUPS MANAGEMENT
+local user
+ 
+*Users that can login has a bash:
+ 
+root:x:0:0:root:/root:/bin/bash
+ 
+analista:x:1000:1000:analista,,,:/home/analista:/bin/bash
+ 
+*fields:
+login: passwd reserve: uid: primary gid:Comments:user home:shell
+
+* /etc/shadow fields
+user:passwd:days since last passwd change:min days for paswd change: max days for passwd change: alert for days before expired passwd:days for inactivate account after expired pwd:
+
+uid 0 = root
+uid 1-999 = system user account
+uid =>1000 = user accounts
+## important paths
+/etc/passwd = user database
+/etc/shadow = user passwords
+/etc/login.defs = definitions defaults for new user accounts
+/etc/skel = template for new users home
+
 ## commands
-ps -aux - list all process: Sleep Running
+### Password/login management
+getent passwd = read all internal user database in order of user creation
+ 
+getent passwd user = bring user info
+ 
+vipw = open /etc/passwd for edition on a safe mode (not good practice)
+
+vigr = open /etc/group for edition on a safe mode (not good practice)
+
+vigr -s = open /etc/gshadow for edition on a safe mode (not good practice)
+getent shadow user = show user password
+ 
+getent group user = show user group
+ 
+getent gshadow group = show group password
+ 
+chage -l user = show password parameters
+ 
+chage user = change parameters interactive
+ 
+chage -M 120 <other params>  user = change parameters 
+ 
+passwd user = change user password
+ 
+passwd -l user = lock user login
+ 
+passwd -u user = unlock user login
+ 
+### Add/ Change/Remove user
+adduser user - create user interactivelly and copy home structure from /etc/skel
+ 
+useradd -m -d /hoome/user -g primary _groupname -G other groups -u uid -s /bin/bash -k /etc/skel/ <...other parameters> username
+ 
+usermod -aG group user = add group to user
+ 
+usermod -g grou user = change user primary group
+ 
+userdel -r user = remove user and /home/user directory
+ 
+id user = show all groups a user is in
+ 
+### Add / Change/Remove group
+groupadd groupname = create group
+ 
+groupdel groupname = remove group
+ 
+groupmod -n newname oldname = rename group
+
