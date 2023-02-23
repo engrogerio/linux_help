@@ -777,7 +777,9 @@ udev -
 
 # Processes
 Activities started.
+ 
 PID = process son
+ 
 PPID = process parent
 
 
@@ -787,17 +789,21 @@ PPID = process parent
  
 ## read commands
 ps -aux - list all process: state(Sleep Running), MEM and CPU
+ 
 ps -eF
+ 
 ps -ely - show state and nice (ni) or priority
+ 
 ps -axjf - show process tree
+ 
 ps -ax -o pid,user,nice,stat,command = customized output
-
+ 
 pstree - show process tree
-
+ 
 pgrep -a appname - show process related to app
-
+ 
 pidof app - return app pid if app is running
-
+ 
 top / htop
 
 ## management commands
@@ -811,26 +817,34 @@ kill -l =show signals list
 
 Most used:
 15 SIGTERM - terminate signal 
+ 
 19 SIGSTOP - stop signal
+ 
 3 SIGQUIT -
+ 
 9 SIGKILL - kill process
+ 
 18 SIGCONT - continue a stoped process
-
+ 
 ctr+z - send task to background
+ 
 jobs -l = show backgrounds tasks and its number
-
+ 
 command & = run in background
-
+ 
 fg task number = bring task to foreground
-
+ 
 nohup = run a command imune to hungaps (not related to a tty)
-
+ 
 ### priority
 -20 = very hight
+ 
 0 = normal
+ 
 +19 = very low
-
+ 
 nice -n -20 <process> = start a process with priority -20
+ 
 renice -n -15 <pid> = change the process pid priority to -15
 
 # LOCAL USERS AND GROUPS MANAGEMENT
@@ -846,16 +860,25 @@ analista:x:1000:1000:analista,,,:/home/analista:/bin/bash
 login: passwd reserve: uid: primary gid:Comments:user home:shell
 
 * /etc/shadow fields
+ 
 user:passwd:days since last passwd change:min days for paswd change: max days for passwd change: alert for days before expired passwd:days for inactivate account after expired pwd:
 
 uid 0 = root
+ 
 uid 1-999 = system user account
+ 
 uid =>1000 = user accounts
+ 
 ## important paths
+ 
 /etc/passwd = user database
+ 
 /etc/shadow = user passwords
+ 
 /etc/login.defs = definitions defaults for new user accounts
+ 
 /etc/skel = template for new users home
+ 
 
 ## commands
 ### Password/login management
@@ -905,4 +928,230 @@ groupadd groupname = create group
 groupdel groupname = remove group
  
 groupmod -n newname oldname = rename group
+
+
+
+### Consulta 
+getent group <group> = usuarios no group group
+
+
+### Create shadow file (old linux version)
+
+pwconv (password converter) = create shadow file and add parameters from passwd (remove from passwd) 
+ 
+pwunconv copy passwords from shadow file to passwd file. Removes the shadow file.
+
+# File Management and Permissions
+
+## 
+chgrp <groupname> <file> - change file main group
+ 
+chown <user>:<group> <file>
+
+
+# file types
+- = common files
+d = folders
+l = link
+s = socket
+
+## std Permissions
+umask
+
+chmod examples
+chmod ugo-rw <file> = remove read and write permissions from all 
+ 
+chmod a-wr <file> = same
+
+Octal example:
+special user group others
+    0     6     4     7
+
+## Special permissions
+### suid bit = executable will obey the owner of the application being running (not the user logged in)
+s = s+x
+ 
+S = s 
+ 
+chmod u+s <executable>
+ 
+or chmod 4777
+ 
+
+### sgid bit = force folder group. New file or folders will be created on folder group (not user group)
+s = s+x
+ 
+S = s
+ 
+chmod g+s <folder>
+ 
+or chmod 2777
+
+### stick bit = only owner may delete even if there is write permission to others. 
+t = t+x
+ 
+T = t
+ 
+chmod o+t <file>
+ 
+or chmod 1777
+
+### umask
+default 666
+ 
+may be defined on .bashrc or .profile
+ 
+666-660 = umask=006
+
+# Shell Script
+/etc/init.d = collection of scripts (chron, etc)
+ 
+bash -x script.sh = show execution
+
+
+## Commands
+echo - display 
+read ENVIRONMENTVARIABLE - read from stdin
+$? - return last function return type
+
+$0 - script name
+$1 - first script parameters
+$* - all parameters
+
+
+## function declaration
+name() {
+       }
+       
+or
+
+function name {
+              }
+              
+## importing files onto other function
+source <filepath> or . <filepath>
+
+## conditionals
+returns true or false
+ 
+(-d = is a directory?)
+if test -d /opt/trigger (help test)
+or
+
+if [ -d /opt/trigger ]; then 
+echo "dir exists"
+else
+mkdir -pv /opt/trigger
+
+## loop
+while read ENVIRONMENTVARIABLE; do
+done
+ 
+until read ENVIRONMENTVARIABLE; do
+done
+ 
+for i in $(cat /var/scripts/nomes.txt); do
+done
+
+# Links
+## soft link
+ln -s source destin/name
+ 
+most used. Shortcut
+ 
+can be used for diferents partitions
+ 
+## hard links
+ln source destin
+ 
+2 names pointing to the same address on the disk.
+ 
+only works for files on the same partitions
+
+# ASSISTIR AULA Systemd ****
+
+# Encript partition
+
+## cryptsetup manages disk criptography
+apt install cryptsetup
+
+### main options:
+ 
+choose type:
+ 
+cryptsetup -c 
+ 
+ask for password:
+ 
+cryptosetup -y 
+ 
+define critop key size (256, 2024, 4048,...)
+cryptosetup -s
+
+LUKS Format
+luksformat
+
+luksOpen / luksClose = open or closes device
+
+## run command for creating criptography layer
+cryptsetup -y --cipher aes-cbc-essiv:sha256 --key-size 256 luksFormat /dev/sdc1
+
+## Open device for use
+cryptsetup luksOpen /dev/sdc1 <volume name>
+this creates a volume on /dev/mapper/<voulme name>
+
+## Install xfsprogs
+apt install -y xfsprogs
+
+## formats voulme
+mkfs -t xfs /dev/mapper/<volume name>
+
+xfs_admin -L crypt /dev/mapper/<volume name>
+
+## Mount device
+mount /dev/mapper/<volume name> /destin
+
+## Close device
+cryptsetup luksClose <voulme name>
+
+## Loading cripted drive on os initialization
+file /etc/crypttab
+ 
+add line
+ 
+<volume name>   /dev/sdc1   none    luks
+
+## Read /etc/crypttab and mount cripted partition
+cryptdisks_start <volume name> (luksOpen)
+ 
+cryptdisks_stop <volume name> (luksClose)
+
+## Automatic mounting
+### apt install autofs
+ 
+### edit /etc/auto.master
+
+line 8 add: (everytime /data was open, read /etc/auto.misc (keys)):
+ 
+/data   /etc/auto.misc  --timeout 30 (unmount after 30 sec idle
+ 
+### edit /etc/auto.misc
+ 
+add line:
+
+<volume name>    -fstype=xfs,rw   /dev/mapper/<volume name>
+
+### enable autofs
+ 
+systemctl restart autofs
+ 
+systemctl enable autofs
+
+###  mount auto :
+cd /data/crypt
+
+df -h shows folder
+
+### umount auto:
+leaves de folder for 30 sec
 
