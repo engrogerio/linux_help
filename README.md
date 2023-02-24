@@ -1072,7 +1072,9 @@ only works for files on the same partitions
 
 # Encript partition
 
-## cryptsetup manages disk criptography
+## creates and encript partition
+
+### cryptsetup manages disk criptography
 apt install cryptsetup
 
 ### main options:
@@ -1093,35 +1095,38 @@ luksformat
 
 luksOpen / luksClose = open or closes device
 
-## run command for creating criptography layer
+### creating criptography layer
+
 cryptsetup -y --cipher aes-cbc-essiv:sha256 --key-size 256 luksFormat /dev/sdc1
 
-## Open device for use
+### Open device for use
 cryptsetup luksOpen /dev/sdc1 <volume name>
+ 
 this creates a volume on /dev/mapper/<voulme name>
 
-## Install xfsprogs
+## formats volume
+
+### Install xfsprogs
 apt install -y xfsprogs
 
-## formats voulme
 mkfs -t xfs /dev/mapper/<volume name>
 
 xfs_admin -L crypt /dev/mapper/<volume name>
 
-## Mount device
+### Mount device
 mount /dev/mapper/<volume name> /destin
 
-## Close device
+### Close device
 cryptsetup luksClose <voulme name>
 
-## Loading cripted drive on os initialization
+### Loading cripted drive on os initialization
 file /etc/crypttab
  
 add line
  
 <volume name>   /dev/sdc1   none    luks
 
-## Read /etc/crypttab and mount cripted partition
+### Read /etc/crypttab and mount cripted partition
 cryptdisks_start <volume name> (luksOpen)
  
 cryptdisks_stop <volume name> (luksClose)
@@ -1154,4 +1159,47 @@ df -h shows folder
 
 ### umount auto:
 leaves de folder for 30 sec
+
+============================================================
+# SSH 
+## install ssh (debian)
+apt install openssh-server
+
+## ssh config files
+/etc/ssh/sshd_config = server
+/etc/ssh/ssh_config = client
+
+## view ssh connections status
+ss -ntpl
+
+## securing ssh
+### change port
+Port = 52001
+
+### restrict only specific users sshd_config
+PermitRootLogin no
+AllowUsers analista
+AllowGroups 
+DenyUsers
+DenyGroups
+
+### authenticate with keys (no password)
+PasswordAuthentication (yes/no)
+
+### Banner
+Banner /etc/issue.net
+
+### restart service
+systemctl restart sshd
+
+### Using key pair
+ssh-keygen -t rsa -b 2048 -C analista@interno.asf.com
+
+### send keys to destin
+ssh-copy-id -p 52001 analista@192.168.1.1
+* key is added to .ssh/authorized_keys on destin
+
+
+
+
 
