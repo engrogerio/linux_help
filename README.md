@@ -25,9 +25,7 @@ now init 6
 telinit 6
  
 -------------------------
- 
- 
-# 2-BASIC ADMIN COMMANDS
+# 2-Basic admin commands
 
 estrutura arquivo /etc/passwd
  
@@ -60,11 +58,17 @@ check what users are currently connected
 
 ## HISTORY 
 histsize -> env var that set max items on history
+ 
 histfile -> history filepath
+ 
 history -c (apaga o historico)
+ 
 history -w (comit)
+ 
 history 10 (last 10 lines)
+ 
 !20 -> runs the command on history line 20
+ 
 fc abre editor com ultima linha do historico
 
 ## HELP
@@ -102,9 +106,7 @@ mandb - mantem base de dados dos manuais atualizadas
 ~/.bashrc -> configuração do usuario (mais para funções e alias)
  
 -------------------------
- 
-  
-# SEARCH TEXT & MANIPULATION
+# Search text and manipulation 
 
 ## REDIRECT STDerr, in, out
 ls /dev/std*
@@ -263,7 +265,7 @@ blkid |sed -e 's|"||g'
  
 -------------------------
 
-# ADVANCED COMMANDS
+# Advanced commands
 
 ## DD
 dd -conversões e cópias de arquivos
@@ -312,9 +314,7 @@ Grava stdin e stdout em arquivo
 exit para sair
  
 -------------------------
- 
-  
-# RESOURCES ADMIN
+# Resources administration
 
 ## DISK ADMIN
 
@@ -394,8 +394,7 @@ ocs inventory
 kacy
  
 -------------------------
- 
-# MANAGING DISKS
+# Manage disks
 
 ## 1- Partitionning
 fdisk /dev/sdb1
@@ -468,9 +467,7 @@ sha1sum - return hash for file
 tune2fs -O extents,uninit_bg,dir_index /dev/sdb2
  
 -------------------------
- 
-
-# MANAGING FILE PACKAGES
+# Manage file packages
 
 ## CPIO
 <files list> | cpio -ov > file
@@ -503,12 +500,11 @@ unxz conf.tar.xz
 ### lsof - show opened files
  
 -------------------------
- 
- 
-# NETWORK
+# Network
 Virtualbox docs
 ## DEFINITIONS
 NAT = network address translation
+ 
 local -> internet
 
 
@@ -598,8 +594,8 @@ iface enp0s3 inet static (or dhcp)
 * restart service 
 systemctl restart networking
 
-====================================
-# PACKAGES MANAGEMENT 
+__________________________________
+# Packages management
 
 ## Package management for Debian
 ### Important folders:
@@ -732,7 +728,7 @@ rpm -Va - compare instalation and show diferences on files comparing to the orig
 
 rpm -qa - query all packages installed
 
-==================================
+__________________________________
 # Libraries management
 .so shared objects (dinamic libraries)
 
@@ -749,8 +745,8 @@ ldconfig -p - list all installed libraries cached
 
 ldconfig  - update the cash
 
-===================================
-# Module management
+__________________________________
+# Modules management
 
 ## important folders
 /boot - kernel compiled image:
@@ -781,7 +777,7 @@ modprobe <mod name> - read modules.dep e carrega o modulo solicitado
 
 udev - 
 
-=========================================
+__________________________________
 # Processes
 Activities started.
  
@@ -855,7 +851,7 @@ nice -n -20 <process> = start a process with priority -20
 renice -n -15 <pid> = change the process pid priority to -15
 
 
-=========================================
+__________________________________
 # LOCAL USERS AND GROUPS MANAGEMENT
 local user
  
@@ -951,7 +947,7 @@ pwconv (password converter) = create shadow file and add parameters from passwd 
  
 pwunconv copy passwords from shadow file to passwd file. Removes the shadow file.
 
-======================================
+__________________________________
 # File Management and Permissions
 
 ## Change group / owner
@@ -1014,7 +1010,7 @@ may be defined on .bashrc or .profile
  
 666-660 = umask=006
 
-=========================================
+__________________________________
 # Shell Script
 /etc/init.d = collection of scripts (chron, etc)
  
@@ -1066,7 +1062,7 @@ for i in $(cat /var/scripts/nomes.txt); do
 done
 
 
-==========================================
+__________________________________
 # Links
 ## soft link
 ln -s source destin/name
@@ -1082,7 +1078,7 @@ ln source destin
  
 only works for files on the same partitions
 
-===========================================
+__________________________________
 # Systemd
 
 Service manager
@@ -1152,7 +1148,7 @@ enabled - will be load on initialization
 alias - point to another service
 disabled - will not load on initialization
 
-============================================
+__________________________________
 # Encript partition
 
 ## creates and encript partition
@@ -1243,7 +1239,7 @@ df -h shows folder
 ### umount auto:
 leaves de folder for 30 sec
 
-================================================
+__________________________________
 # SSH 
 datacenter ip 20
 storage ip 30
@@ -1290,7 +1286,7 @@ ssh-copy-id -p 52001 analista@192.168.1.1
 scp -P 52030 source destin:/folder
 -r if source is a folder
 
-=================================
+__________________________________
 # Scanning network
 ## open ports
 nmap -v -sT 192.168.0.0/24 - scan 255 addresses against open ports
@@ -1302,4 +1298,4 @@ nmap -sn 192.168.0.1/24
 netstat -rn
 or 
 routel
-================================
+__________________________________
