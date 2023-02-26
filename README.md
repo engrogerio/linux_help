@@ -457,7 +457,7 @@ noexec = block execution
  
 mount -a should mount or show the errors if there is on fstab
  
-### Convert ext3 to ext4 format
+## Convert ext3 to ext4 format
 
 sha1sum - return hash for file
  
@@ -598,14 +598,17 @@ iface enp0s3 inet static (or dhcp)
 * restart service 
 systemctl restart networking
 
-# PACKAGES MANAGEMENT FOR DEBIAN
-## Important folders:
+====================================
+# PACKAGES MANAGEMENT 
+
+## Package management for Debian
+### Important folders:
 /etc/apt/sources.list - config apt install
 /var/cache/apt/archives/ - apt keep installers here.
 /usr/local/src or /usr/src - place to store source codes.
 
 
-## APT options
+### APT options
 apt search <packname> - suggests packages and similaries
 apt show <packname> - show info about the append
 apt policy <packname> - show if its installed and the candidates
@@ -622,7 +625,7 @@ Other package mgmt tool: aptitude
 
 
 
-## Compiling
+### Compiling
 
 apt build-deb <app> - install all dependencies needed for to compile the app
 
@@ -632,7 +635,7 @@ ap source <app> - download the source code for app
 make 
 make install
 
-## Installing from .deb  using dpkg (low level)
+### Installing from .deb  using dpkg (low level)
 
 * verify if packname is installed:
  
@@ -656,12 +659,12 @@ dpkg -S /usr/sbin/iftop - show to what package this file belongs to
  
 dpkg -r <packname> removes the package files
  
-# PACKAGES MANAGEMENT FOR CentOS (REDHAT)
+## PACKAGES MANAGEMENT FOR CentOS (REDHAT)
 
-## Convert from .deb to .rpm (RedHat)
+### Convert from .deb to .rpm (RedHat)
 alien -r packname.Debian
 
-## Important folders:
+### Important folders:
 /etc/yum.repos.d - repos used by the os
 /var/log/dnf.log - log on package management
  
@@ -669,12 +672,12 @@ enabled = 1 - enabled
  
 gpgcheck=1 - check key on the web address
 
-## Installing .rpm packages
+### Installing .rpm packages
 
 RedHat uses dnf or yum as package management
 
 
-## YUM
+### YUM
 yum repolist - show active repos
  
 yum makecash - update internally the package list (like apt update)
@@ -707,7 +710,7 @@ yum groupremove <groupname> - uninstall group elements
 
 yum clean all - remove package files from local folder
 
-## RPM (install a .rpm file)
+### RPM (install a .rpm file)
 
 rpm -q <packname> - check if package is installed
   
@@ -729,7 +732,9 @@ rpm -Va - compare instalation and show diferences on files comparing to the orig
 
 rpm -qa - query all packages installed
 
+==================================
 # Libraries management
+.so shared objects (dinamic libraries)
 
 ## important folders
 /lib/x86-64-linux-gnu - libraries installed
@@ -744,6 +749,7 @@ ldconfig -p - list all installed libraries cached
 
 ldconfig  - update the cash
 
+===================================
 # Module management
 
 ## important folders
@@ -775,6 +781,7 @@ modprobe <mod name> - read modules.dep e carrega o modulo solicitado
 
 udev - 
 
+=========================================
 # Processes
 Activities started.
  
@@ -847,6 +854,8 @@ nice -n -20 <process> = start a process with priority -20
  
 renice -n -15 <pid> = change the process pid priority to -15
 
+
+=========================================
 # LOCAL USERS AND GROUPS MANAGEMENT
 local user
  
@@ -891,6 +900,7 @@ vipw = open /etc/passwd for edition on a safe mode (not good practice)
 vigr = open /etc/group for edition on a safe mode (not good practice)
 
 vigr -s = open /etc/gshadow for edition on a safe mode (not good practice)
+
 getent shadow user = show user password
  
 getent group user = show user group
@@ -941,15 +951,16 @@ pwconv (password converter) = create shadow file and add parameters from passwd 
  
 pwunconv copy passwords from shadow file to passwd file. Removes the shadow file.
 
+======================================
 # File Management and Permissions
 
-## 
+## Change group / owner
 chgrp <groupname> <file> - change file main group
  
 chown <user>:<group> <file>
 
 
-# file types
+## file types
 - = common files
 d = folders
 l = link
@@ -1003,6 +1014,7 @@ may be defined on .bashrc or .profile
  
 666-660 = umask=006
 
+=========================================
 # Shell Script
 /etc/init.d = collection of scripts (chron, etc)
  
@@ -1053,6 +1065,8 @@ done
 for i in $(cat /var/scripts/nomes.txt); do
 done
 
+
+==========================================
 # Links
 ## soft link
 ln -s source destin/name
@@ -1068,8 +1082,77 @@ ln source destin
  
 only works for files on the same partitions
 
-# ASSISTIR AULA Systemd ****
+===========================================
+# Systemd
 
+Service manager
+First process loaded on boot (PID=1)
+ 
+Manage units:
+
+systemd.service - Service units
+
+systemd.socket - Sockets units
+
+systemd.target - Group units
+
+systemd.device - Device based activation
+
+## run levels
+ls -l /lib/systemd/system/runlevel*.target - targets for runlevels
+
+systemctl get-default - returns the current run level (same as runlevel)
+systemctl set-default multi-user.target - change the current level to non graphical on next restart (same as telinit 2)
+set-default graphical.target - back to graphical interface (same as telinit 5)
+set-default reboot.target (same as telinit 6 = reboot)
+
+
+## important paths
+/lib/systemd/system = place where all services are stored 
+/lib/systemd/system/sysinit.target.wants = all services that will be started
+/sbin/init = executables
+/run/systemd/generator - mounts
+
+## commands
+systemctl list-units --all -> load all units loaded in memory
+ list-units --type=service
+
+ list-unit-files --type=service --state=enabled
+(services will initialize on boot up)
+
+ reload 
+ restart
+ start
+ stop
+ enable
+ disable
+ status
+ mask
+ umask
+ reboot
+ 
+### check if its enabled
+systemctl is-enabled <service-name>
+
+### remove from initialization
+systemctl disable <service-name>
+
+### add to initialization
+systemctl enable <service-name>
+
+### mask a service
+mask <service-name> = creates a symlink to /dev/null, so service can not be used
+umask <service-name>
+
+ 
+### service state options
+static - can not be changed (needed)
+masked - can not be used. even for dependency calls from other services
+enabled - will be load on initialization
+alias - point to another service
+disabled - will not load on initialization
+
+============================================
 # Encript partition
 
 ## creates and encript partition
@@ -1104,7 +1187,7 @@ cryptsetup luksOpen /dev/sdc1 <volume name>
  
 this creates a volume on /dev/mapper/<voulme name>
 
-## formats volume
+## format a volume
 
 ### Install xfsprogs
 apt install -y xfsprogs
@@ -1160,8 +1243,12 @@ df -h shows folder
 ### umount auto:
 leaves de folder for 30 sec
 
-============================================================
+================================================
 # SSH 
+datacenter ip 20
+storage ip 30
+
+
 ## install ssh (debian)
 apt install openssh-server
 
@@ -1199,7 +1286,20 @@ ssh-keygen -t rsa -b 2048 -C analista@interno.asf.com
 ssh-copy-id -p 52001 analista@192.168.1.1
 * key is added to .ssh/authorized_keys on destin
 
+### copy files
+scp -P 52030 source destin:/folder
+-r if source is a folder
 
+=================================
+# Scanning network
+## open ports
+nmap -v -sT 192.168.0.0/24 - scan 255 addresses against open ports
 
+## all hosts connected
+nmap -sn 192.168.0.1/24 
 
-
+## check all ip routing table
+netstat -rn
+or 
+routel
+================================
