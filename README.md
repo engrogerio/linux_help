@@ -1286,6 +1286,34 @@ ssh-copy-id -p 52001 analista@192.168.1.1
 scp -P 52030 source destin:/folder
 -r if source is a folder
 
+### to limit access for some systemd apps
+#### Debian
+tcpwapper
+works only for /sbin/sshd - apps que carregam a libwapp
+set apps on /etc/hosts.allow or deny
+
+#### CentOS
+tcpwapper is deprecated
+
+
+----------------------------------------
+# Firewall
+
+## Firewall rules
+iptables -L -show rules
+
+/sbin/firewall.sh - regras do firewall
+
+
+## firewall package flow diagram
+http://4.bp.blogspot.com/-2bTL0JCdzFQ/UI6hdnTnkzI/AAAAAAAAARg/Wo9V6e8asxo/s1600/FLUXOGRAMA+com+tabelas+e+cadeias+do+IPTABLES.jpg
+
+## Understanding firewall.sh
+Table: Filter (table default)
+iptables -P INPUT DROP (-P = policy. INPUT = table. DROP - block all
+ 
+INPUT SESSION - packages that enters on firewall
+iptables -A INPUT -p tcp --dport 52001 -j ACCEPT (-A = ADD, -p = protocol --dport =destin port -j = what to do)
 __________________________________
 # Scanning network
 ## open ports
@@ -1299,3 +1327,5 @@ netstat -rn
 or 
 routel
 __________________________________
+
+'
