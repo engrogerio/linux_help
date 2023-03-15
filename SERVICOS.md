@@ -108,7 +108,68 @@ specify a file for each zone
 * restart service named
 * named-checkconf - show errors if exists
 
-OPENLDAP
+### check named.conf.local - customized zones (owned domains/zones) asf.com to internal and external nw
+* any change, has to change serial number to synchronize with the other dns server
+
+### check zone db for local - /var/bind9/chroot/var/cache/bind/db.asf.internal - table for all services address dns uses.
+* dns servers are using NS (name server)
+ns1.asf.com. (dot to make it not autocomplete with asf.com)
+* MX = mail exchange
+* @ = current address
+* Serial is used by slave to check if master has changed
+
+
+### rev.asf.interna (from inside network)
+*reverso ip -> nome 
+ 
+### db.asf.externa (from outside network)
+@ local domain (asf.com)
+
+
+
+### DIG
+mx = mail servers
+ns = dns servers
+soa = start of authority
+ptr
+
+
+dig +short @8.8.8.8 ns guardian.com mx
+
+dig +short gateway.asf.com
+
+dig +short -x 192.168.1.20 = return dns name
+
+________________________________________
+# OPENLDAP
+* existent users are keeped
+* central database dc=asf, dc=com (dc=domain component)
+* ou=users, ou=groups (ou=organization unit)
+* uid=rogerio (uid=user identification)
+* cn=rogerio (cn=common name)
+
+## Install
+* apt install slapd ldap-utils -y
+
+* systemctl is-enabled slapd
+
+* cd /etc/ldap
+* ldap.conf (client config)
+
+* cd /usr/share/doc/slapd/example/slapd.conf.gz
+* gzip -k -d /usr/share/doc/slapd/examples/slapd.conf.gz -c > /etc/ldap/slapd.conf
+* vim slapd.conf:
+** loglevel - man 5 slapd.conf
+* loglevel trace packets
+* logfile /var/log/slapd.log
+
+* moduleload change to back_bdb (berkley database)
+* do the same to lines 39 and 51
+* fix the suffix and rootdn(also uncomment) to asf
+* run slappaswd (create hash)
+* add to rootpw 
+
+
 
 MTA
 
