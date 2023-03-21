@@ -169,9 +169,194 @@ ________________________________________
 * run slappaswd (create hash)
 * add to rootpw 
 
+* mv /etc/ldap/slap.d /var/backup
+* mkdir /etc/ldap/slap.d
+
+chown openldap:openldap -R /var/lib/ldap/ /etc/ldap/slapd.d/
+
+* test config:
+slaptest -f slap.conf -F slapd.d/
+restart slapd service and apply the chown again till it works
+## 1- cadastrar users e groups locais
+* groupadd -g 5000 g_ti
+* groupadd -g 5001 g_diretoria
+* groupadd -g 5002 g_suporte
+
+* useradd -m -k /etc/skel/ -s /bin/bash -u 5000 -g g_ti -G g_diretoria,g_suporte kamila
+* change password:
+    passwd kamila
 
 
-MTA
+## 2- gerar arquivo de importação ldif para o LDAP apartir dos usuarios locais
+### pode se usar LDAP account manager.
+### install migrationtools
+* scripts on /usr/share/migrationtools/
+
+* vim migrate_common.ph
+    * line 71 and 74 change to asf
+    * line 96 and 97 to 5000 and uncomment
+    * line 100 and 101 to 6000 and uncomment
+* vim migrate_base.pl
+    line 39 add fullpath to require
+    
+* run ./migrate_base.pl > /etc/ldap/base.ldif
+
+* vim migrate_group.pl
+    line 39 add fullpath to require
+
+* run ./migrate_group.pl /etc/group /etc/ldap/groups.ldif
+* vim migrate_common.ph
+    line 39 add fullpath to require
+
+* run ./migrate_passwd.pl /etc/passwd /etc/ldap/users.ldif
+
+    
+## 3- importar ldif
+
+cd /etc/ldap
+
+* ldapadd -x -D cn=admin,dc=asf,dc=com -f base.ldif -W
+-x = simple authentication
+-W = ask passwor
+
+* ldapadd -x -D cn=admin,dc=asf,dc=com -f groups.ldif -W
+* ldapadd -x -D cn=admin,dc=asf,dc=com -f users.ldif -W
+
+* slapcat - Show import result
+### search ldap
+* ldapsearch -x -b dc=asf,dc=com uid=sofia -LLL (-LLL do not show header)
+
+## 4- change 
+* vim shell.ldif
+
+dn: uid=sophia,ou=People,dc=asf,dc=com
+changetype: modify
+replace: loginShell
+loginShell: /bin/bash
+
+* ldapmodify -x cn=admin dc=asd,dc=com -f shell.ldif -W
+
+
+## backup base de dados
+* Stop ldap service
+systemctl stop slapd
+
+* slapcat -l /var/backups/bkpldap.ldif
+
+## deletar toda a base de dados
+(-r = remove)
+* ldapdelete -x -D cn=admin,dc=asf,dc=com -r dc=asf,dc=com -W
+* slapcat (shows empty)
+
+* ldapdelete may be used with dn for specific users
+
+## restore the ldap db
+* stop slapd
+(-c = ignore errors)
+* slapadd -cl  /var/backups/bkpldap.ldif
+
+## install interface ldap
+sudo apt -y install apache2 php php-cgi libapache2-mod-php php-mbstring php-common php-pear
+
+* sudo apt install ldap-account-manager -y
+
+* vim /etc/apache2/conf-available/ldap-account-manager.conf
+
+* 192.168.1.100/lam/templates/login.php
+* lan configuration
+* edit server profile
+    password: lam
+    server address: ldap://192.168.1.20:389
+* Tool Settings
+* TreeSufix: dc=asf,dc=com
+* Security Settings
+* List of valid users: cn=admin,dc=asf,dc=com
+
+* Account type -> active account types
+    Users and Groups LDAP sufix change to asf.com
+
+## add computer to LDAP
+* apt install libnss-ldapd  libpam-ldapd  ldap-utils -y
+
+URI do servidor dap
+    ldap://192.168.1.20
+
+services: passwd group shadow
+
+## plugable authentication modules
+* pam-auth-update
+    * mark "Create home directory on login"
+Now on login a user existing on ldap, it will create user home
+
+
+## Mail server
+* MTA - Mail Transfer Agent
+
+* MUA (mail user agent) -> MTA1 <- protocol SMTP (port 25) SMTPS (port 465 or 587)-> MTA2
+* MDA Mail delivery agent (filter /anti virus on messages)
+* MAA Mail access agent (IMAIM (143  and 993)  or POP3 (port 110 and 995)
+
+* MTA - Postfix
+* MAA - Dovecot
+* MUA - Thunderbird
+
+apt install postfix procmail bsd-mailx -y
+
+systemctl status postfix
+
+*ss -ntpl
+(see port 25 smtp)
+
+* vim /etc/services - ports mapping
+
+* Install dovecot
+apt install dovecot-core dovecot-pop3d dovecot-imapd -y
+
+* vim /etc/dovecot/dovecot.conf
+line 30 - uncomment listen (all ips listening for requests)
+
+* vim /conf.d/10-auth.conf (enable auth)
+line 10 - uncomment and change to no
+line 100 - add: login
+
+* vim /conf.d/10-mail.conf (tell dovcot the mailbox path)
+comment line 30
+add line mail_location = maildir:~/Maildir (mailbox on user home)
+
+* vim /conf/10-master.conf (usr/grps needed for spooler)
+line 107 and 108 - uncomment
+add lines:
+    user = postfix
+    group = postfix
+ }
+ 
+* systemctl restart dovecot
+* ss -ntpl |grep dovecot
+
+## config Postfix
+### enable ports
+/etc/postfix
+* vim master.cf 
+uncomment lines 17 to 21
+right after line 21, add line -o smtpd_sasl_type=dovecot
+
+uncomment line smtps and next 3 lines after that
+
+* restart service
+systemctl restart postfix
+
+* check if ss -ntpl |grep master shows ports 25, 587 and 465
+
+## add Datacenter vm to LDAP
+* apt install libnss-ldap libpam-ldapd ldap-utils -y
+ldap://192.168.1.20
+mark passwd, group and shadow
+
+* pam-auth-update
+Select "create home directory on login"
+
+
+
 
 SAMBA
 

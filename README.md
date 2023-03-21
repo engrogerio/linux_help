@@ -23,7 +23,10 @@ shutdown -r
 now init 6
  
 telinit 6
- 
+
+## Keyboard config
+dpkg-reconfigure keyboard-configuration
+
 -------------------------
 # 2-Basic admin commands
 
@@ -1325,7 +1328,7 @@ nmap -sn 192.168.0.1/24
 ## check all ip routing table
 netstat -rn
 or 
-routel
+routel'
 __________________________________
 
 '
