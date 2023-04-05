@@ -355,8 +355,267 @@ mark passwd, group and shadow
 * pam-auth-update
 Select "create home directory on login"
 
+## configure postfix
+ 
+* man 5 postconf - configure postfix´
+
+* postconf = change /etc/postfix/main.cf
+
+* postconf |more - show all existing config
+
+* postconf -e myorigin=asf.comment
+or
+* edit /etc/postfix/main.cf
+
+* cp /root/linuxforce/datacenter/postfix/etc/postfix/main.cf /etc/postfix
+
+* vim main.cf
+    on line 6 add mydomain = asf.com
+    
+## Create Alias
+
+* vim /etc/aliases
+add rh: kamila@asf.com
+add ti: rafaela@asf.com
+
+## compile aliases file (creates /etc/aliases.db)
+
+* postalias /etc/aliases 
+
+* systemctl restart postfix
+
+## Send email
+
+* cat /etc/hosts |mail -s "TESTE 01" ti@asf.comment
+
+* mailq or postqueue -p - check if there is a message to be send on the queue
+
+* check /var/log/mail.log file
 
 
+## Relay - connect to external servers
+
+## vim main.cf
+* line 46: add asf.com
+
+## Install maildrop (command maildirmake)
+
+* maildirmake Maildir
+* maildirmake Maildir/.Enviados
+* maildirmake Maildir/.Ocultos
+* maildirmake Maildir/.Lixeira
+* maildirmake Maildir/.Spam
+
+
+## run mailuser 
+/root/linuxforce/datacenter/postfix/mail_user.sh
+
+
+
+# smtpd_sasl_type
+
+apt install libsasl2-2 sasl2-bin libsasl2-modules
+
+* vim /etc/default/saslauthd
+
+OPTIONS change to /var/spool/posfix/var/run/saslauthd
+
+* mkdir -pv /var/spool/postfix/var/run/saslauthd
+
+* add user postfix sasl2
+
+* systemctl restart saslauthd
+* systemctl enable saslauthd
+
+## Create certs mentioned on /etc/postfix/main.cf
+* mkdir /etc/postfix/ssl
+
+### create key
+openssl genrsa -out webmail.key 1024
+
+### cert requests
+openssl req -new -key webmail.key -out webmail.csr
+
+
+Country Name (2 letter code) [AU]:BR
+State or Province Name (full name) [Some-State]:SAO PAULO
+Locality Name (eg, city) []:SAO PAULO
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:ASF
+Organizational Unit Name (eg, section) []:TI
+Common Name (e.g. server FQDN or YOUR name) []:mail.asf.com
+Email Address []:analista@asf.com
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+### cert sign
+openssl x509 -req -days 365 -in webmail.csr -signkey webmail.key -out webmail.crt
+
+### create CA key (certificate authority)
+openssl req -new -x509 -extensions v3_ca -keyout cakey.pem -out cacert.pem -days 365
+
+### restarting services
+systemctl restart postfix dovecot saslauthd
+
+_________________________________________________
+# Webservers - 24/3/2023
+
+apache.org
+httpd.apache.org (apache2)
+## serviços modulares
+core + modules + configurations + site
+
+mods /conf/sites
+available - initial deployment
+enabled - up
+
+### Modules
+a2enmod (enable)
+a2dismod (disable)
+
+### Config files
+a2enconf
+a2disconf
+
+### Sites
+a2ensite
+a2dissite
+
+### vim /etc/apache2/apache.conf
+apache2ctl -t - check if there is an error on conf files
+
+
+### env vars /etc/apache2/envvars
+
+### to create file /etc/apache2/available-sites/ express.conf
+
+
+<VirtualHost  express.asf.com:80>
+        DocumentRoot /srv/www/express
+        ServerName express.asf.com
+        ServerAdmin analista@asf.com
+        ErrorLog /var/log/apache2/express-error.log
+        CustomLog /var/log/apache2/express-access.log common
+</VirtualHost>
+
+apache2ctl -t
+
+systemctl restart apache2
+
+en2sites express.conf
+
+## Criar SSL cert para https
+* create dir /etc/ssl/express
+* enable 2 apache modules
+    a2enmod ssl
+    a2enmod rewrite - module need for doing redirect 
+    
+* Create cert and key
+openssl genrsa -out express.key 2048
+openssl req -new -key express.key -out express.csr
+
+* signature on cert
+openssl x509 -req -days 365 -in express.csr -signkey express.key -out express.crt
+
+* change the conf file
+<VirtualHost  express.asf.com:443>
+        DocumentRoot /srv/www/express
+        ServerName express.asf.com
+        ServerAdmin analista@asf.com
+        ErrorLog /var/log/apache2/express-error.log
+        CustomLog /var/log/apache2/express-access.log common
+        SSLEngine On
+        SSLCertificateFile /etc/ssl/express/express.crt
+        SSLCertificateKeyFile /etc/ssl/express/express.key
+</VirtualHost>
+
+* add redirect http -> https
+
+<VirtualHost express.asf.com:80> 
+        RewriteEngine On 
+        Options FollowSymLinks 
+        RewriteCond %{SERVER_PORT} 80 
+        RewriteRule ^(.*)$ https://express.asf.com/  [R,L] 
+</VirtualHost>
+
+## Install db on Datacenter vm
+* apt install mariadb-server -y
+
+* run command:
+    mariadb-secure-instalation
+password for root <enter>
+switch to unix_socket authentication y
+change root passwd y
+Linuxforce01
+
+Remove anonimous user y
+Disallow root login remotelly y
+Remove test database and access y
+Reload privilege tables y
+
+
+## create database
+* mysql -u root -p
+* show databases
+* create database backup;
+* use backup;
+* source /root/linuxforce/datacenter/backup.sql
+
+## create user for database
+grant all privileges on backup.* to express@'%' identified by 'AllSafe0!';
+
+flush privileges;
+
+show grants for express@'%';
+
+* vim /etc/mysql/mariadb.conf.d/50-server.cnf
+    comentar linha com bind-address ou mudar para 0.0.0.0
+
+## add apache2 autentication
+add on express.conf
+<Directory "/srv/www/express/backup.php">
+        AuthType Basic
+        AuthName "Acesso restrito a equipe de Backup"
+        AuthUserFile /etc/apache2/.express
+        Require valid-user
+</Directory>
+
+## create auth file
+-c create (only first time)
+-m mda
+htpasswd -c -m /etc/apache2/.express rogerio
+
+## Pam authentication module (did not worked)
+pam - authentication, authorization, session and password
+* apt install libapache2-mod-authnz-pam
+* create file /etc/pam.d/apache2
+    auth required       pam_unix.so nullok
+    account required    pam_unix.so 
+* add on express.conf
+<Directory "/srv/www/express" >
+    AuthType Basic
+    AuthName Express Security
+    AuthPAM_Enabled On
+    Require valid-user
+</Directory>
+ 
+
+## LDAP auth
+* install libapache2-mod-authnz-external pwauth
+
+* add:
+<Directory "/srv/www/express/downloads">
+        Options Indexes FollowSymLinks
+        AllowOverRide none
+        SSLRequireSSL
+        AuthType Basic
+        AuthName "Ldap Authentication"
+        AuthBasicProvider ldap
+        AuthLDAPURL "ldap://192.168.1.20:389/ou=People,dc=asf,dc=com?uid?sub?(objectClass=*)"
+        Require valid-user
+</Directory>
 
 SAMBA
 
