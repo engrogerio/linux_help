@@ -600,11 +600,23 @@ pam - authentication, authorization, session and password
     AuthPAM_Enabled On
     Require valid-user
 </Directory>
- 
+
+## install libapache2-mod-authnz-external pwauth
+* enable module:
+    a2enmod authnz_ldap
+
+* add on config:    
+AddExternalAuth pwauth /usr/sbin/pwauth 
+SetExternalAuthMethod pwauth pipe 
+<Directory "/srv/www/express"> 
+        AuthType Basic 
+        SSLRequireSSL 
+        AuthName "Members Only" 
+        AuthExternal pwauth 
+        Require valid-user 
+</Directory>
 
 ## LDAP auth
-* install libapache2-mod-authnz-external pwauth
-
 * add:
 <Directory "/srv/www/express/downloads">
         Options Indexes FollowSymLinks
@@ -617,14 +629,357 @@ pam - authentication, authorization, session and password
         Require valid-user
 </Directory>
 
-SAMBA
+* to remove Indexes
+remove Indexes word
 
-LVM
+* remove apache version on browser
+vim /etc/apache2/conf-available/security.conf
+ServerTokens - change from OS to Prod
+ServerSignature - Change from On to Off 
 
-RAID
+_________________________________________________
+# NGINX
+* apt install nginx
+* nginx.conf
+/sites-availabe/conf
+* root - base serving folder
+* index - order nginx search for index files
+* server_name - www.asf.com
+* location / means base folder
 
-VPN - OPEN VPN
+* remove comments for pass PHP scripts to FastCGI server
 
+* install apt install php7.4 php7.4-common php-pear php7.4-mbstring php7.4-fpm -y
+
+* systemctl enable php7.4-fpm nginx
+* nginx -t
+
+### seting php app
+* echo '<?php phpinfo(); ?>' >/usr/share/nginx/html/index.php
+
+
+## 
+cd /usr/share/nginx
+wget https://github.com/rogerramossilva/linux/raw/master/asf.zip
+
+* vim /etc/nginx/sites-available/default
+line 41 change to nginx/asf;
+
+* create dir /etc/pki/nginx
+
+openssl genrsa -out asf.key 2048
+openssl req -new -key asf.key -out asf.csr
+openssl x509 -req -days 365 -in asf.csr -signkey asf.key -out asf.crt
+
+* install the certificate
+* add to /etc/nginx/sites-available/default
+server {
+        listen 443;
+        listen [::]:443;
+
+        server_name www.asf.com;
+
+        root /usr/share/nginx/asf;
+        index index.php index.html;
+        ssl_certificate "/etc/pki/nginx/asf.crt";
+        ssl_certificate_key "/etc/pki/nginx/asf.key";
+        ssl_session_cache shared:SSL:1m;
+        ssl_session_timeout 10m;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers on;
+
+
+        location / {
+                try_files $uri $uri/ /index.php;
+        }
+
+        location ~ \.php$ {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+        }
+}
+
+## redirect
+
+* vim default - add line 52
+rewrite ^(.*)$  https://www.asf.com/            permanent;
+
+
+## proxy reverso
+request to vespress.com -> arrive on storage.asf.com
+### get real IP address
+        proxy_set_header        X-Real-IP $remote_addr;
+### keep original request
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        
+        
+* new file /available/express
+server {
+        listen 80;
+        index index.php index.html index.htm;
+        server_name vexpress.asf.com;
+        proxy_redirect          off;
+        proxy_set_header        X-Real-IP $remote_addr;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_sed_header        Host $http_host;
+
+        location / {
+                proxy_pass https://express.asf.com/;
+        }
+}
+
+
+
+### dns change
+ssh -p 52010 analista@192.168.1.10
+
+cd /var/bind9/chroot/var/cache/bind/
+vim db.asf.interna
+
+ADD:vexpress IN A 192.168.1.30
+
+* storage: vim /etc/resolv.conf
+move 8.8.8.8 to the end
+
+systemctl restart bind9
+
+
+### firewall change
+gateway:
+vim /sbin/firewall.sh uncoment NAT SESSION section item #4 (line 170) and items 8 and 9 from FORWARD section 
+
+run : firewall.sh
+
+----------------------------
+# PAM plugable authentication modules
+** Not a Service **
+* Manager type
+_auth
+_account
+_password
+_session
+
+* Controls
+_required - in case of fail , do not show message imediatly
+_requisite - in case of fail, show message imediatly
+_suficient - if not fail, its sufficient
+_optional - do not interfere on the process no matter the result
+
+* Module name
+
+* Value
+
+modulos
+* cd /lib/x86_64-linux-gnu/security
+
+config
+* cd /etc/pam.d
+
+* common-* config(affects the entire system)
+
+Ex:auth required pam_faildelay.so delay=3000
+a
+# avoid othe users to login:
+* vim /etc/nologin
+
+## add time constraint to ssh and login
+### enable modules
+* add on sshd:
+account  required   pam.time.so
+
+### config
+* vim /etc/security/time.conf
+login;*;analista;Al0800-1800
+sshd;*;analista;Al0800-2200
+
+## Using module well to allow users to login with another user
+* groupadd admins
+* gpasswd -a analista admins
+
+* vim /etc/pam.d/su
+lin15 uncomment and add group=admins
+
+## Limit simultaneous login or files opened
+---------------------------
+# Proxy service - Squid and ldap integration.
+## DOCS /usr/share/doc/squid/squid.conf.documented
+## Allow filter on what can be accessed
+## Store internal cache.
+## Firewal - services / Proxy http/ftp
+
+* Gateway is the passage of the data flow from internal client to internet.
+
+```
+yum install squid -y
+cd /etc/squid
+vim squid.conf
+
+#  on the beggining of the file, add: 
+
+# calling basic_ldap_auth 
+auth_param basic program /usr/lib64/squid/basic_ldap_auth -b dc=asf,dc=com -f uid=%s 192.168.1.20
+# start 5 processes for authentication
+auth_param basic children 5
+auth_param basic realm Proxy Squid
+# how long to store creds for inactive session?
+auth_param basic credentialsttl 2 hours
+
+# user must authenticate
+acl password proxy_auth REQUIRED
+# block non authenticated users
+http_access deny !password
+
+
+visible_hostname proxy.asf.com
+
+# 1- created acls
+# acl src - source ip
+# acl dst -
+# port, dstdomain,srcdomain, auth, arp, time,
+url_regex,
+
+# 2- create rules
+
+```
+* UNCOMMENT line 64 (cache_dir)
+cache dir ufs /var/spool/squid 100 (mb-dir size) 16 (initial dirs) 256 (dirs inside first 16)
+errorpage.css - error message for user when access is blocked
+
+### enable port 3128 on the firewall
+vim /sbin/firewall.sh
+* uncomment line 71 (related to port 3128)
+firewall.sh
+* uncomment line 103 (output session, item 7)
+
+
+### logs on /var/log/squid/access.logfile
+
+### reconfigure
+Parse file for errors:
+* squid -k parse -f /etc/squid/squid.conf
+Run config
+* squid -k reconfigure
+
+=============================
+# RAID
+apt install mdadm
+
+mdadm --create /dev/md0 --level=5 --raid-devices=6 /dev/sdb .../dev/sdg --spare-devices=1 /dev/sdh 
+
+mdadm --detail  /dev/md0
+
+cat /proc/mdstat
+
+## mount
+mount /dev/md0 /mnt
+
+## format ext4
+mkfs -t ext4 /dev/md0
+
+=============================
+#LVM - logical volume manager
+apt install lvm2
+
+1- pvcreate - create physical volume
+- prepare disk for use (divide in small blocks called PE (physical extent)
+* pvcreate /dev/md0
+
+-list devices already existing
+* pvscan
+
+* pvdisplay
+
+2- create VG - volume group 
+- create group 
+* vgcreate storage /dev/md0
+- expand to other dev id needed
+* vgextend storage /dev/md1
+
+* pvdisplay now shows VG name and size ( PE size)
+
+* vgdisplay storage
+
+3- create LV - logic volume
+* lvcreate -L 2G -n devel storage
+
+* lvscan
+4- Format LV
+
+5- Mount LV
+
+-------------------------------------------------
+#SAMBA
+- assistir aulas 23 a 25?
+
+-------------------------------------------------
+# VPN - OPEN VPN
+easy-rsa = scripts to create certs
+
+* yum install openvpn easy-rsa -y
+
+* /usr/share/easy-rsa/3/easyrsa init-pki
+
+* /usr/share/easy-rsa/3/easyrsa build-ca nopass
+
+* cp ca.crt to both client and server directory
+
+VPN trust relationship
+
+1st request client -> server on internet (unsecure key exchange) using diffhelm key:
+* /usr/share/easy-rsa/3/easyrsa gen-dh
+
+* cp dh.pem to both client and server directory
+
+_create server certificate (named vpn-server):
+* /usr/share/easy-rsa/3/easyrsa build-server-full vpn-server nopass
+* cp /pki/private/vpn-server.key and /pki/issued/vpn-server.crt to ./server
+
+_create client certificate
+* /usr/share/easy-rsa/3/easyrsa build-client-full vpn-client-01
+
+-certificate revoking list (in case of fired employee for example)
+* /usr/share/easy-rsa/3/easyrsa gen-crl
+* copy to both client and server dirs
+
+-to revoke:
+* /usr/share/easy-rsa/3/easyrsa revoke <cert number>
+
+-create simetric key for communication between client and server (tls alt)
+* openvpn --genkey secret pki/ta.key
+
+-criar arquivos de configuração da vpn server e client (first file to be read when service start)
+* cp client.conf and server.conf (from repo)
+
+- server.conf
+dev tun - will create /dev/tun0
+local 200.50.100.10 (server public ip)
+ifconfig 10.0.0.100 - network addrs server
+prot udp
+port 1194 (service port that must have firewall rule for udp on 1194)
+keepalive 10 120 (check if connection is active every 10 seconds. if not, restart after 120 seconds)
+user/group nobody (no previleges user)
+route 10.0.0.0 255.255.255.0 - can see all the 10... network
+client-config-dir /etc/openvpn/ccd -dir for specific client config per file 
+
+-start with @server for reading server.conf
+systemctl restart openvpn-server@server
+systemctl enable openvpn-server@server
+
+- vim /sbin/firewall.sh
+* line 51 (input session)
+1-
+iptables -A INPUT -i tun0 -j ACCEPT
+* line 75 - uncomment
+* line 87 (output session)
+iptables -A OUTPUT -o tun0 -j ACCEPT
+* line 111 - remove comment (ssh cliente externo) temporarily to send files.
+* line 118 - add: (any connection forward to the server)
+iptables -A FORWARD -i tun0 -j ACCEPT
+iptables -A FORWARD -0 tun0 -j ACCEPT
+
+
+--------------------------------------------------
 DATE
 /etc/localtime
 timedatactl
