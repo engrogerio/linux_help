@@ -978,6 +978,29 @@ iptables -A OUTPUT -o tun0 -j ACCEPT
 iptables -A FORWARD -i tun0 -j ACCEPT
 iptables -A FORWARD -0 tun0 -j ACCEPT
 
+## copy client folder to client(cliente externo)
+install openvpn on cliente externo
+
+* mv /client -> /etc/openvpn/client
+* vim client.conf
+remote -> ip for server (for initial connection)
+* systemctl edit --full openvpn-server@client
+change WorkingDirectory to client
+* systemctl enable openvpn-server@client
+* systemctl restart openvpn-server@client
+* ip a -> show tun0 as down cause has no ip
+
+* on vpn server, /etc/openvpn/ccd
+* vim vpn-client-01 and add:
+ifconfig-push 10.0.0.200 10.0.0.100
+push "route 192.168.1.0 255.255.255.0 10.0.0.200"
+push "dhcp-option DNS 192.168.1.10"
+
+
+* ip a should show tun0 up
+
+* ip route show routes through vpn
+
 
 --------------------------------------------------
 DATE
